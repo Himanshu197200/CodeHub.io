@@ -1,111 +1,245 @@
-# ⚡ AdForge.io — AI-Powered Product Ads Generator
+# 🚀 CodeHub – Mini GitHub for College Developers
+
+> A full-stack web platform where students can **upload, collaborate, and manage coding projects**, just like GitHub — but built specifically for campus developers.
+
+---
 
 ## 🧩 Overview
-**AdForge.io** is a full-stack AI-powered platform that transforms simple product images into scroll-stopping, professional ad creatives using **Artificial Intelligence**.  
-This project integrates **Next.js**, **Firebase**, and **ImageKit.io** to automate the entire ad creation workflow — from generating high-quality visuals and videos to securely hosting and managing them.
 
-## 🚨 Problem Statement
-In today’s digital economy, **small businesses and online sellers** struggle to create visually compelling advertisements.
+**CodeHub** is a collaborative version-control platform for students. It allows users to create repositories, track commits, open issues, discuss ideas, and collaborate with teammates — all within a college ecosystem.
+Built with **React.js, Express.js, Prisma, MySQL, and Google OAuth**, it demonstrates your ability to design and deploy **industry-level software architecture**.
 
-- Hiring professional designers or agencies is **expensive**.  
-- Traditional design tools require **time, skill, and creativity**.  
+---
 
-As a result, many products fail to capture attention on social media and e-commerce platforms — leading to **low engagement** and **lost sales**.  
-This creates a strong need for a **smart, automated, and affordable ad creation solution**.
+## ✨ Features
 
-## 💡 Proposed Solution
-**AdForge.io** solves these challenges by leveraging **AI** to automate ad generation.
+### 👤 Authentication & Profiles
 
-**User flow:**
-1. Upload a product image.  
-2. Enter a short prompt describing desired style/tone.  
-3. Receive a high-quality, ready-to-use ad image or video.
+* Google OAuth 2.0 login for easy access
+* Student profiles with bio, avatar, and college details
+* View other developers’ profiles and public repositories
 
-**Key features:**
-- Automatic background enhancement  
-- Color and layout optimization  
-- Professional design generation via AI  
-- Secure cloud storage and fast delivery through ImageKit CDN
+### 📦 Repository Management
 
-## 🧱 1. Setup & Architecture
-**Goal:** Define the system architecture and integrate core technologies.
+* Create, update, and delete repositories
+* Public/private visibility settings
+* Fork existing repositories
+* Star your favorite repositories
 
-**Tech Stack:**
-- **Next.js + React + TypeScript** → Frontend & SSR  
-- **Firebase (Auth + Firestore + Hosting)** → Authentication, database, hosting  
-- **ImageKit.io** → Image upload, optimization, CDN delivery  
-- **OpenAI API** → AI model for ad creative generation  
-- **Framer Motion** → UI animations & transitions
+### 🧑‍🤝‍🧑 Collaboration
 
-## 🎨 2. Frontend Development
-**Goal:** Build an engaging and intuitive user interface.
+* Add collaborators (Owner, Maintainer, Contributor)
+* Role-based permissions
+* Shared commit history and issues
 
-**Tasks:**
-- Design a landing page introducing the app  
-- Implement Firebase authentication (login/signup)  
-- Create a dashboard to upload images and enter prompts  
-- Display generated ads with download/share options  
-- Show credits and usage information
+### 💬 Discussions & Issues
 
-## 🧠 3. AI Image Generation Engine
-**Goal:** Automate ad generation using AI models.
+* Open issues with detailed descriptions
+* Comment and discuss issues in real time
+* Tag issues as `OPEN` or `CLOSED`
 
-**Tasks:**
-- Connect OpenAI Image/Video APIs for creative generation  
-- Use structured prompts for professional designs  
-- Support multiple formats (square, portrait, landscape)  
-- Generate optional video ad templates from static images
+### 💾 Commits
 
-## 🗂️ 4. Database & Asset Management
-**Goal:** Manage and store all user data and generated assets.
+* Record commit messages (simulated Git commits)
+* Track commit logs by date, author, and repository
+* Each commit is versioned and stored in the database
 
-**Tasks:**
-- Set up Firestore for user and ad metadata  
-- Implement CRUD operations for ad records  
-- Use ImageKit for secure uploads and optimization  
-- Generate optimized URLs for fast web delivery
+### 🌟 Leaderboard
 
-## 🔐 5. Authentication & User Flow
-**Goal:** Enable personalized user experiences.
+* Global college leaderboard of top contributors
+* Scores update dynamically based on user activity:
 
-**Tasks:**
-- Integrate Firebase Authentication (Email/Google login)  
-- Enable role-based access for free and premium users  
-- Provide dashboard to view ad history and credit usage
+  | Action         | Points |
+  | -------------- | ------ |
+  | New repository | +10    |
+  | New commit     | +2     |
+  | Issue resolved | +5     |
+  | Repo starred   | +1     |
+  | Repo forked    | +3     |
 
-## ⚡ 6. Optimization & Delivery
-**Goal:** Ensure fast and responsive media serving.
+### 🧠 Additional Features
 
-**Tasks:**
-- Use ImageKit transformations for dynamic resizing  
-- Implement lazy loading and caching  
-- Optimize image formats for better performance
+* Markdown rendering for README files
+* Repository analytics (stars, forks, commits count)
+* Notifications for team activities
+* Responsive UI inspired by GitHub’s clean design
 
-## 🚀 7. Deployment & Hosting
-**Goal:** Launch a production-ready, scalable app.
+---
 
-**Tasks:**
-- Deploy frontend and backend via Firebase Hosting  
-- Connect custom domain and SSL  
-- Test CDN performance and delivery speed
+## 🛠️ Tech Stack
 
-## 🧪 8. Testing & Documentation
-**Goal:** Ensure a robust and maintainable application.
+| Layer      | Technology                                                      |
+| ---------- | --------------------------------------------------------------- |
+| Frontend   | **React.js**, Axios, TailwindCSS                                |
+| Backend    | **Express.js**, Node.js                                         |
+| Database   | **MySQL** with **Prisma ORM**                                   |
+| Auth       | **Google OAuth 2.0**                                            |
+| Deployment | Vercel (frontend) + Render/Railway (backend)                    |
+| Optional   | Socket.io for real-time comments, Cloudinary for profile images |
 
-**Tasks:**
-- Test AI workflows end-to-end (input → output)  
-- Verify authentication and data integrity  
-- Prepare developer and user documentation  
-- Create final project presentation and demo
+---
 
-## 🎯 Expected Outcome
-By the end of this project, **AdForge.io** will be a fully functional, deployable AI Product Ads Generator capable of:
+## 🧱 Database Schema (Simplified)
 
-- Generating professional ad creatives within seconds  
-- Securely managing and storing all user assets  
-- Instantly serving visuals via CDN  
-- Reducing ad creation costs and time by **over 80%**
+Key models include:
 
-**AdForge.io** empowers small businesses and marketers to produce **high-quality ads effortlessly**, making digital promotion **accessible, affordable, and AI-driven.**
+* **User** → Google login info, profile data
+* **Repository** → project info + owner/fork links
+* **Commit** → commit message + author + repo
+* **Issue** → bug reports / feature requests
+* **Discussion** → threaded comments
+* **Star** → repo likes
+* **Collaborator** → multi-role team members
+* **Leaderboard** → user ranking system
 
+> See full schema in `/prisma/schema.prisma`.
 
+---
+
+## 🧩 Folder Structure
+
+```
+codehub/
+├── client/               # React frontend
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── pages/        # Home, Repo, Profile, etc.
+│   │   ├── services/     # API calls (Axios)
+│   │   └── App.js
+│   └── package.json
+│
+├── server/               # Express backend
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   └── migrations/
+│   ├── src/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   └── index.js
+│   └── package.json
+│
+├── .env.example
+├── README.md
+└── LICENSE
+```
+
+---
+
+## 🔗 API Endpoints (Sample)
+
+| Method   | Endpoint                  | Description           |
+| -------- | ------------------------- | --------------------- |
+| **POST** | `/api/auth/google`        | Google OAuth login    |
+| **GET**  | `/api/repos`              | Get all repositories  |
+| **POST** | `/api/repos`              | Create new repository |
+| **GET**  | `/api/repos/:id`          | Get single repository |
+| **POST** | `/api/repos/:id/commit`   | Add commit to repo    |
+| **POST** | `/api/repos/:id/fork`     | Fork repository       |
+| **POST** | `/api/repos/:id/star`     | Star repository       |
+| **GET**  | `/api/issues/:repoId`     | Get all issues        |
+| **POST** | `/api/issues`             | Create new issue      |
+| **POST** | `/api/issues/:id/comment` | Add comment to issue  |
+| **GET**  | `/api/leaderboard`        | Get top contributors  |
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/<your-username>/codehub.git
+cd codehub
+```
+
+### 2️⃣ Install dependencies
+
+```bash
+cd server && npm install
+cd ../client && npm install
+```
+
+### 3️⃣ Setup `.env`
+
+```bash
+# Backend (.env)
+DATABASE_URL="mysql://user:password@localhost:3306/codehub"
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_secret"
+SESSION_SECRET="some_random_secret"
+
+# Frontend (.env)
+VITE_API_URL="http://localhost:5000"
+```
+
+### 4️⃣ Run database migrations
+
+```bash
+cd server
+npx prisma migrate dev --name init
+```
+
+### 5️⃣ Start the app
+
+```bash
+# Backend
+npm run dev
+
+# Frontend
+cd ../client
+npm start
+```
+
+App runs on:
+
+* Frontend → `http://localhost:5173`
+* Backend → `http://localhost:5000`
+
+---
+
+## 🧠 Future Enhancements
+
+* Real Git integration (push/pull simulation)
+* Real-time collaboration using WebSockets
+* CI/CD simulation badges (`build passing ✅`)
+* AI-based code suggestions for repositories
+* Private messaging between contributors
+* Project analytics dashboard
+
+---
+
+## 🧑‍💻 Contributing
+
+1. Fork the repo
+2. Create a new branch:
+
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+3. Commit your changes:
+
+   ```bash
+   git commit -m "Add some feature"
+   ```
+4. Push and open a Pull Request 🚀
+
+---
+
+## 📸 UI Screenshots (Optional Section)
+
+*(Add screenshots once UI is ready)*
+
+* Login Page
+* Dashboard
+* Repository Page
+* Issues & Discussions
+* Leaderboard
+
+---
+
+## 🧾 License
+
+This project is licensed under the **MIT License** — free to use, modify, and distribute.
+
+---
