@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import {
   CssBaseline,
@@ -39,6 +39,7 @@ const drawerWidth = 240
 function App() {
   const [mode, setMode] = useState('light')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [leaders, setLeaders] = useState([])
 
   const theme = useMemo(() => createTheme({ palette: { mode } }), [mode])
 
@@ -73,6 +74,14 @@ function App() {
       </List>
     </Box>
   )
+
+  useEffect(() => {
+    const api = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+    fetch(`${api}/api/leaderboard`)
+      .then((r) => r.json())
+      .then((d) => setLeaders(Array.isArray(d?.data) ? d.data : []))
+      .catch(() => setLeaders([]))
+  }, [])
 
   return (
     <ThemeProvider theme={theme}>
@@ -187,6 +196,25 @@ function App() {
                   <Chip icon={<FolderIcon />} label="New Repository" variant="outlined" />
                   <Chip icon={<HistoryIcon />} label="New Commit" variant="outlined" />
                   <Chip icon={<BugReportIcon />} label="New Issue" variant="outlined" />
+                </Stack>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  Leaderboard
+                </Typography>
+                <Stack spacing={1}>
+                  {leaders.length === 0 && (
+                    <Typography variant="body2" color="text.secondary">No data</Typography>
+                  )}
+                  {leaders.slice(0, 5).map((u, idx) => (
+                    <Stack key={u.user + idx} direction="row" alignItems="center" spacing={1}>
+                      <EmojiEventsIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ flexGrow: 1 }}>{u.user}</Typography>
+                      <Chip size="small" label={`${u.points} pts`} />
+                    </Stack>
+                  ))}
                 </Stack>
               </Paper>
             </Grid>
