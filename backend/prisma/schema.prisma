@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ORGANIZER
+  FACULTY
+  ADMIN
+}
+
+enum EventType {
+  SOLO
+  TEAM
+}
+
+enum EventCategory {
+  TECHNICAL
+  CULTURAL
+  SPORTS
+  WORKSHOP
+  SEMINAR
+  OTHER
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String   @unique
+  password     String?
+  role         Role     @default(STUDENT)
+  branch       String?
+  year         Int?
+  interests    String[]
+  achievements String[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+
+  organizedEvents Event[] @relation("OrganizedEvents")
+  registrations   Registration[]
+  teams           TeamMember[]
+  feedbacks       Feedback[]
+}
+
+model Event {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  banner          String?
+  date            DateTime
+  time            String
+  venue           String
+  type            EventType
+  category        EventCategory
+  maxParticipants Int
+  isPaid          Boolean @default(false)
+  price           Float?
+  registrationDeadline DateTime
+  rules           String[]
+  faqs            Json?
+
+  organizerId     String   @db.ObjectId
+  organizer       User     @relation("OrganizedEvents", fields: [organizerId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  registrations   Registration[]
+  teams           Team[]
+  feedbacks       Feedback[]
+}
+
+model Registration {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   String   @db.ObjectId
+  event     Event    @relation(fields: [eventId], references: [id])
+  teamId    String?  @db.ObjectId
+  team      Team?    @relation(fields: [teamId], references: [id])
+  
+
+  mobile           String?
+  gender           String?
+  organization     String?
+  type             String?
+  differentlyAbled String?
+  location         String?
+
+  hasAttended Boolean @default(false)
+  registeredAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+}
+
+model Team {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  code      String   @unique
+  eventId   String   @db.ObjectId
+  event     Event    @relation(fields: [eventId], references: [id])
+  
+  members   TeamMember[]
+  registrations Registration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TeamMember {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamId    String   @db.ObjectId
+  team      Team     @relation(fields: [teamId], references: [id])
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  status    String   @default("PENDING")
+
+  @@unique([teamId, userId])
+}
+
+model Feedback {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int
+  comment   String?
+  improvements String?
+  
+  eventId   String   @db.ObjectId
+  event     Event    @relation(fields: [eventId], references: [id])
+  
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Otp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
