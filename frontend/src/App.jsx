@@ -20,9 +20,11 @@ const PrivateRoute = ({ children }) => {
 };
 
 import CreateEvent from './pages/CreateEvent';
+import EditEvent from './pages/EditEvent';
 import EventDetails from './pages/EventDetails';
 import Teams from './pages/Teams';
 import Dashboard from './pages/Dashboard';
+import HostDashboard from './pages/HostDashboard';
 import OrganizerLogin from './pages/OrganizerLogin';
 
 import Layout from './components/Layout';
@@ -49,6 +51,16 @@ function AppRoutes() {
         <Route path="/dashboard" element={
           <PrivateRoute>
             <Dashboard />
+          </PrivateRoute>
+        } />
+        <Route path="/host-dashboard" element={
+          <PrivateRoute>
+            <HostDashboard />
+          </PrivateRoute>
+        } />
+        <Route path="/events/:id/edit" element={
+          <PrivateRoute>
+            <EditEvent />
           </PrivateRoute>
         } />
       </Routes>

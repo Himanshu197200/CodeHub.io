@@ -106,7 +106,7 @@ exports.googleCallback = async (req, res) => {
         });
 
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const redirectPath = user.role === 'ORGANIZER' || user.role === 'ADMIN' ? '/create-event' : '/';
+        const redirectPath = user.role === 'ORGANIZER' || user.role === 'ADMIN' ? '/host-dashboard' : '/';
 
         res.redirect(`${frontendUrl}${redirectPath}`);
 

@@ -1,10 +1,17 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
-import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle } from 'lucide-react';
+import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle, ArrowLeft } from 'lucide-react';
 
-const CreateEvent = () => {
+const EditEvent = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [banner, setBanner] = useState(null);
+    const [currentBanner, setCurrentBanner] = useState('');
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -20,9 +27,61 @@ const CreateEvent = () => {
         rules: '',
         faqs: ''
     });
-    const [banner, setBanner] = useState(null);
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchEvent = async () => {
+            try {
+                const { data } = await api.get(`/events/${id}`);
+
+                // Format date for input
+                const dateObj = new Date(data.date);
+                const dateStr = dateObj.toISOString().split('T')[0];
+
+                // Format deadline for input
+                const deadlineObj = new Date(data.registrationDeadline);
+                const deadlineStr = deadlineObj.toISOString().slice(0, 16);
+
+                // Parse rules and faqs if they are arrays or objects
+                let rulesStr = '';
+                if (Array.isArray(data.rules)) {
+                    rulesStr = data.rules.join('\n');
+                } else if (typeof data.rules === 'string') {
+                    rulesStr = data.rules;
+                }
+
+                let faqsStr = '';
+                if (data.faqs && typeof data.faqs === 'object') {
+                    faqsStr = data.faqs.answer || '';
+                } else if (typeof data.faqs === 'string') {
+                    faqsStr = data.faqs;
+                }
+
+                setFormData({
+                    title: data.title,
+                    description: data.description || '',
+                    date: dateStr,
+                    time: data.time,
+                    venue: data.venue,
+                    type: data.type,
+                    category: data.category,
+                    maxParticipants: data.maxParticipants,
+                    isPaid: data.isPaid,
+                    price: data.price || '',
+                    registrationDeadline: deadlineStr,
+                    rules: rulesStr,
+                    faqs: faqsStr
+                });
+                setCurrentBanner(data.banner);
+            } catch (err) {
+                console.error('Failed to fetch event:', err);
+                setError('Failed to load event details');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvent();
+    }, [id]);
 
     const handleChange = (e) => {
         const { name, value, checked, type } = e.target;
@@ -41,48 +100,54 @@ const CreateEvent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setLoading(true);
+        setSubmitting(true);
 
         const data = new FormData();
         Object.keys(formData).forEach((key) => {
-            // Split rules and faqs by newline if they are strings
-            if (key === 'rules' || key === 'faqs') {
-                // This logic might need to be adjusted based on how backend expects arrays
-                // For now, sending as string, backend should handle parsing or we parse here
-                // Assuming backend expects array of strings for rules/faqs? 
-                // Let's check schema later. For now, sending as is or splitting.
-                // If backend expects array, we should JSON.stringify or append multiple times.
-                // Let's assume backend handles it or we send as string for now.
-                data.append(key, formData[key]);
-            } else {
-                data.append(key, formData[key]);
-            }
+            data.append(key, formData[key]);
         });
         if (banner) {
             data.append('banner', banner);
         }
 
         try {
-            await api.post('/events', data, {
+            await api.put(`/events/${id}`, data, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            navigate('/');
+            navigate('/host-dashboard');
         } catch (err) {
-            const message = err.response?.data?.message || 'Failed to create event';
-            const suggestion = err.response?.data?.suggestion;
-            setError(suggestion ? `${message} Suggestion: ${suggestion}` : message);
+            const message = err.response?.data?.message || 'Failed to update event';
+            setError(message);
             window.scrollTo(0, 0);
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-50">
+                <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
+                <div className="mb-6">
+                    <button
+                        onClick={() => navigate('/host-dashboard')}
+                        className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Back to Dashboard
+                    </button>
+                </div>
+
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-extrabold text-gray-900">Create New Event</h1>
-                    <p className="mt-2 text-gray-600">Fill in the details to host your event.</p>
+                    <h1 className="text-3xl font-extrabold text-gray-900">Edit Event</h1>
+                    <p className="mt-2 text-gray-600">Update your event details.</p>
                 </div>
 
                 {error && (
@@ -109,8 +174,7 @@ const CreateEvent = () => {
                                     required
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                    placeholder="e.g. Hackathon 2025"
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -127,8 +191,7 @@ const CreateEvent = () => {
                                     rows={4}
                                     value={formData.description}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                    placeholder="Describe your event..."
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -140,7 +203,7 @@ const CreateEvent = () => {
                                     name="category"
                                     value={formData.category}
                                     onChange={handleChange}
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 >
                                     <option value="TECHNICAL">Technical</option>
                                     <option value="CULTURAL">Cultural</option>
@@ -156,7 +219,7 @@ const CreateEvent = () => {
                                     name="type"
                                     value={formData.type}
                                     onChange={handleChange}
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 >
                                     <option value="SOLO">Solo</option>
                                     <option value="TEAM">Team</option>
@@ -182,7 +245,7 @@ const CreateEvent = () => {
                                         required
                                         value={formData.date}
                                         onChange={handleChange}
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -198,7 +261,7 @@ const CreateEvent = () => {
                                         required
                                         value={formData.time}
                                         onChange={handleChange}
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -216,8 +279,7 @@ const CreateEvent = () => {
                                     required
                                     value={formData.venue}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                    placeholder="e.g. Main Auditorium"
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -234,7 +296,7 @@ const CreateEvent = () => {
                                     required
                                     value={formData.registrationDeadline}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -250,8 +312,7 @@ const CreateEvent = () => {
                                 rows={4}
                                 value={formData.rules}
                                 onChange={handleChange}
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder="1. No cheating&#10;2. Bring your own laptop"
+                                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                             />
                         </div>
                         <div>
@@ -261,8 +322,7 @@ const CreateEvent = () => {
                                 rows={3}
                                 value={formData.faqs}
                                 onChange={handleChange}
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder="Q: Is food provided?&#10;A: Yes, lunch is included."
+                                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                             />
                         </div>
                     </div>
@@ -283,7 +343,7 @@ const CreateEvent = () => {
                                     required
                                     value={formData.maxParticipants}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -295,7 +355,7 @@ const CreateEvent = () => {
                                 name="isPaid"
                                 checked={formData.isPaid}
                                 onChange={handleChange}
-                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                             />
                             <label htmlFor="isPaid" className="text-sm font-medium text-gray-700">This is a paid event</label>
                         </div>
@@ -313,7 +373,7 @@ const CreateEvent = () => {
                                         required
                                         value={formData.price}
                                         onChange={handleChange}
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -346,13 +406,24 @@ const CreateEvent = () => {
                                     </div>
                                 ) : (
                                     <>
+                                        {currentBanner && (
+                                            <div className="mb-4">
+                                                <p className="text-sm text-gray-500 mb-2">Current Banner:</p>
+                                                <div className="relative w-64 h-40 mx-auto">
+                                                    <img
+                                                        src={currentBanner}
+                                                        alt="Current banner"
+                                                        className="w-full h-full object-cover rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                         <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                        <div className="flex text-sm text-gray-600">
+                                        <div className="flex text-sm text-gray-600 justify-center">
                                             <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-teal-600 hover:text-teal-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-teal-500">
-                                                <span>Upload a file</span>
+                                                <span>{currentBanner ? 'Change banner' : 'Upload a file'}</span>
                                                 <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
                                             </label>
-                                            <p className="pl-1">or drag and drop</p>
                                         </div>
                                         <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
                                     </>
@@ -364,27 +435,24 @@ const CreateEvent = () => {
                     <div className="pt-8 mt-8 border-t border-gray-200">
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={submitting}
                             className="w-full flex justify-center items-center gap-2 py-4 px-6 border-2 border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-4 focus:ring-teal-300 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
-                            {loading ? (
+                            {submitting ? (
                                 <>
                                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Creating Event...
+                                    Updating Event...
                                 </>
                             ) : (
                                 <>
                                     <Calendar className="w-6 h-6" />
-                                    Create Event
+                                    Update Event
                                 </>
                             )}
                         </button>
-                        <p className="mt-4 text-center text-sm text-gray-500">
-                            By creating this event, you agree to our event hosting guidelines.
-                        </p>
                     </div>
                 </form>
             </div>
@@ -392,4 +460,4 @@ const CreateEvent = () => {
     );
 };
 
-export default CreateEvent;
+export default EditEvent;

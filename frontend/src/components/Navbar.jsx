@@ -82,15 +82,27 @@ const Navbar = () => {
                                 </div>
                             </div>
                             {user && (
-                                <Link
-                                    to="/teams"
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/teams')
-                                        ? 'bg-primary-50 text-primary-700'
-                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    My Teams
-                                </Link>
+                                ['ORGANIZER', 'ADMIN'].includes(user.role) ? (
+                                    <Link
+                                        to="/host-dashboard"
+                                        className={`px-6 py-3 rounded-full text-base font-bold transition-all duration-200 ${isActive('/host-dashboard')
+                                            ? 'bg-primary-50 text-primary-700 shadow-sm'
+                                            : 'text-gray-600 bg-gray-50 hover:text-gray-900 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        to="/teams"
+                                        className={`px-6 py-3 rounded-full text-base font-bold transition-all duration-200 ${isActive('/teams')
+                                            ? 'bg-primary-50 text-primary-700 shadow-sm'
+                                            : 'text-gray-600 bg-gray-50 hover:text-gray-900 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        My Teams
+                                    </Link>
+                                )
                             )}
                         </div>
 
@@ -139,22 +151,35 @@ const Navbar = () => {
                                                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                                                     </div>
                                                     <div className="p-1">
-                                                        <Link
-                                                            to="/dashboard"
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                                            onClick={() => setIsProfileOpen(false)}
-                                                        >
-                                                            <LayoutDashboard size={16} className="text-gray-400" />
-                                                            Dashboard
-                                                        </Link>
-                                                        <Link
-                                                            to="/teams"
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                                            onClick={() => setIsProfileOpen(false)}
-                                                        >
-                                                            <Users size={16} className="text-gray-400" />
-                                                            My Teams
-                                                        </Link>
+                                                        {['ORGANIZER', 'ADMIN'].includes(user.role) ? (
+                                                            <Link
+                                                                to="/host-dashboard"
+                                                                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                                                                onClick={() => setIsProfileOpen(false)}
+                                                            >
+                                                                <LayoutDashboard size={16} className="text-gray-400" />
+                                                                Dashboard
+                                                            </Link>
+                                                        ) : (
+                                                            <>
+                                                                <Link
+                                                                    to="/dashboard"
+                                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                                                                    onClick={() => setIsProfileOpen(false)}
+                                                                >
+                                                                    <LayoutDashboard size={16} className="text-gray-400" />
+                                                                    Dashboard
+                                                                </Link>
+                                                                <Link
+                                                                    to="/teams"
+                                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                                                                    onClick={() => setIsProfileOpen(false)}
+                                                                >
+                                                                    <Users size={16} className="text-gray-400" />
+                                                                    My Teams
+                                                                </Link>
+                                                            </>
+                                                        )}
                                                     </div>
                                                     <div className="border-t border-gray-50 p-1">
                                                         <button
@@ -242,20 +267,32 @@ const Navbar = () => {
                             </Link>
                             {user ? (
                                 <>
-                                    <Link
-                                        to="/dashboard"
-                                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        Dashboard
-                                    </Link>
-                                    <Link
-                                        to="/teams"
-                                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        My Teams
-                                    </Link>
+                                    {['ORGANIZER', 'ADMIN'].includes(user.role) ? (
+                                        <Link
+                                            to="/host-dashboard"
+                                            className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            Dashboard
+                                        </Link>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                to="/dashboard"
+                                                className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                Dashboard
+                                            </Link>
+                                            <Link
+                                                to="/teams"
+                                                className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                My Teams
+                                            </Link>
+                                        </>
+                                    )}
                                     <button
                                         onClick={() => {
                                             handleLogout();

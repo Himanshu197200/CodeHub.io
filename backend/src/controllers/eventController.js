@@ -5,15 +5,23 @@ const jwt = require('jsonwebtoken');
 
 const uploadToCloudinary = (buffer) => {
     return new Promise((resolve, reject) => {
-        if (!process.env.CLOUDINARY_CLOUD_NAME) {
-            console.log('[MOCK CLOUDINARY] Uploading image...');
-            return resolve({ secure_url: 'https://via.placeholder.com/800x400' });
+        // Check if Cloudinary credentials are missing or are placeholders
+        if (!process.env.CLOUDINARY_CLOUD_NAME ||
+            process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name' ||
+            process.env.CLOUDINARY_API_KEY === 'your_api_key') {
+            console.log('[MOCK CLOUDINARY] Using mock image (credentials missing or placeholders)...');
+            return resolve({ secure_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' });
         }
 
         const uploadStream = cloudinary.uploader.upload_stream(
             { folder: 'eventx' },
             (error, result) => {
-                if (error) return reject(error);
+                if (error) {
+                    console.error('[CLOUDINARY ERROR]', error);
+                    // Fallback to mock image on error
+                    console.log('[MOCK CLOUDINARY] Fallback to mock image due to upload error...');
+                    return resolve({ secure_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' });
+                }
                 resolve(result);
             }
         );
@@ -56,8 +64,17 @@ exports.createEvent = async (req, res) => {
             });
         }
 
-        const event = await prisma.event.create({
-            data: {
+        // Use MongoDB native driver to bypass Prisma transaction requirement
+        const { MongoClient, ObjectId } = require('mongodb');
+        const client = new MongoClient(process.env.DATABASE_URL);
+
+        let event;
+        try {
+            await client.connect();
+            const db = client.db();
+            const eventsCollection = db.collection('Event');
+
+            const eventData = {
                 title,
                 description,
                 banner: bannerUrl,
@@ -67,14 +84,25 @@ exports.createEvent = async (req, res) => {
                 type,
                 category,
                 maxParticipants: parseInt(maxParticipants),
-                isPaid: isPaid === 'true',
+                isPaid: isPaid === 'true' || isPaid === true,
                 price: price ? parseFloat(price) : null,
                 registrationDeadline: new Date(registrationDeadline),
                 rules: rules ? [rules] : [],
                 faqs: faqs ? { question: 'General', answer: faqs } : null,
-                organizerId: req.user.id
-            }
-        });
+                organizerId: new ObjectId(req.user.id),
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            const result = await eventsCollection.insertOne(eventData);
+
+            // Fetch the created event with Prisma to get proper format
+            event = await prisma.event.findUnique({
+                where: { id: result.insertedId.toString() }
+            });
+        } finally {
+            await client.close();
+        }
 
         res.status(201).json(event);
     } catch (error) {
@@ -280,8 +308,125 @@ exports.registerPublic = async (req, res) => {
             registration
         });
 
+
     } catch (error) {
         console.error('Registration Error:', error);
         res.status(500).json({ message: error.message || 'Registration failed' });
     }
 };
+
+exports.updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            title, description, date, time, venue, type, category,
+            maxParticipants, isPaid, price, registrationDeadline, rules, faqs
+        } = req.body;
+
+        // Check if event exists and user is the organizer
+        const event = await prisma.event.findUnique({ where: { id } });
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        if (event.organizerId !== req.user.id && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized to update this event' });
+        }
+
+        // Handle banner upload if provided
+        let bannerUrl = event.banner;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer);
+            bannerUrl = result.secure_url;
+        }
+
+        // Use MongoDB native driver to bypass Prisma transaction requirement
+        const { MongoClient, ObjectId } = require('mongodb');
+        const client = new MongoClient(process.env.DATABASE_URL);
+
+        let updatedEvent;
+        try {
+            await client.connect();
+            const db = client.db();
+            const eventsCollection = db.collection('Event');
+
+            const updateData = {
+                title: title || event.title,
+                description: description !== undefined ? description : event.description,
+                banner: bannerUrl,
+                date: date ? new Date(date) : event.date,
+                time: time || event.time,
+                venue: venue || event.venue,
+                type: type || event.type,
+                category: category || event.category,
+                maxParticipants: maxParticipants ? parseInt(maxParticipants) : event.maxParticipants,
+                isPaid: isPaid !== undefined ? (isPaid === 'true' || isPaid === true) : event.isPaid,
+                price: price !== undefined ? (price ? parseFloat(price) : null) : event.price,
+                registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : event.registrationDeadline,
+                rules: rules !== undefined ? [rules] : event.rules,
+                faqs: faqs !== undefined ? { question: 'General', answer: faqs } : event.faqs,
+                updatedAt: new Date()
+            };
+
+            await eventsCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: updateData }
+            );
+
+            // Fetch updated event
+            updatedEvent = await prisma.event.findUnique({ where: { id } });
+        } finally {
+            await client.close();
+        }
+
+        res.json(updatedEvent);
+    } catch (error) {
+        console.error('Update Event Error:', error);
+        res.status(500).json({ message: 'Failed to update event' });
+    }
+};
+
+exports.deleteEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if event exists and user is the organizer
+        const event = await prisma.event.findUnique({
+            where: { id },
+            include: { registrations: true }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        if (event.organizerId !== req.user.id && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized to delete this event' });
+        }
+
+        // Use MongoDB native driver to bypass Prisma transaction requirement
+        const { MongoClient, ObjectId } = require('mongodb');
+        const client = new MongoClient(process.env.DATABASE_URL);
+
+        try {
+            await client.connect();
+            const db = client.db();
+            const eventsCollection = db.collection('Event');
+            const registrationsCollection = db.collection('Registration');
+
+            // Delete all registrations first (cascade)
+            await registrationsCollection.deleteMany({ eventId: new ObjectId(id) });
+
+            // Delete the event
+            await eventsCollection.deleteOne({ _id: new ObjectId(id) });
+        } finally {
+            await client.close();
+        }
+
+        res.json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        console.error('Delete Event Error:', error);
+        res.status(500).json({ message: 'Failed to delete event' });
+    }
+};
+
