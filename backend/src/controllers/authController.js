@@ -3,7 +3,11 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
 exports.logout = (req, res) => {
-    res.clearCookie('token');
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
     res.json({ message: 'Logged out successfully' });
 };
 
@@ -28,8 +32,8 @@ exports.googleLogin = (req, res) => {
 
     res.clearCookie('token', {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax'
+        secure: true,
+        sameSite: 'none'
     });
 
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=profile email&state=${state}&prompt=select_account consent`;
@@ -100,8 +104,8 @@ exports.googleCallback = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
