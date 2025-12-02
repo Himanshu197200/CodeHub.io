@@ -58,29 +58,15 @@ const Navbar = () => {
                             >
                                 Home
                             </Link>
-                            <div className="relative group">
-                                <Link
-                                    to="/events"
-                                    className={`px-6 py-3 rounded-full text-base font-bold transition-all duration-200 ${isActive('/events')
-                                        ? 'bg-primary-50 text-primary-700 shadow-sm'
-                                        : 'text-gray-600 bg-gray-50 hover:text-gray-900 hover:bg-gray-100'
-                                        }`}
-                                >
-                                    Events
-                                </Link>
-
-                                <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 border border-gray-100">
-                                    {['ALL', 'TECHNICAL', 'CULTURAL', 'SPORTS', 'WORKSHOP'].map((cat) => (
-                                        <Link
-                                            key={cat}
-                                            to={`/events?category=${cat}`}
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 font-medium"
-                                        >
-                                            {cat.charAt(0) + cat.slice(1).toLowerCase()}
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
+                            <Link
+                                to="/events"
+                                className={`px-6 py-3 rounded-full text-base font-bold transition-all duration-200 ${isActive('/events')
+                                    ? 'bg-primary-50 text-primary-700 shadow-sm'
+                                    : 'text-gray-600 bg-gray-50 hover:text-gray-900 hover:bg-gray-100'
+                                    }`}
+                            >
+                                Events
+                            </Link>
                             {user && (
                                 ['ORGANIZER', 'ADMIN'].includes(user.role) ? (
                                     <Link
