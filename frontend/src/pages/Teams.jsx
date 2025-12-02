@@ -228,7 +228,7 @@ const Teams = () => {
                             </button>
                             <button
                                 onClick={handleJoinTeam}
-                                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                                className="px-4 py-2 bg-primary-600 text-gray-700 rounded-lg hover:bg-primary-700 transition"
                             >
                                 Join Team
                             </button>

@@ -33,7 +33,7 @@ exports.createEvent = async (req, res) => {
     try {
         const {
             title, description, date, time, venue, type, category,
-            maxParticipants, isPaid, price, registrationDeadline, rules, faqs
+            maxParticipants, isPaid, price, registrationDeadline, rules, faqs, isHot
         } = req.body;
 
 
@@ -89,6 +89,7 @@ exports.createEvent = async (req, res) => {
                 registrationDeadline: new Date(registrationDeadline),
                 rules: rules ? [rules] : [],
                 faqs: faqs ? { question: 'General', answer: faqs } : null,
+                isHot: isHot === 'true' || isHot === true,
                 organizerId: new ObjectId(req.user.id),
                 createdAt: new Date(),
                 updatedAt: new Date()
@@ -320,7 +321,7 @@ exports.updateEvent = async (req, res) => {
         const { id } = req.params;
         const {
             title, description, date, time, venue, type, category,
-            maxParticipants, isPaid, price, registrationDeadline, rules, faqs
+            maxParticipants, isPaid, price, registrationDeadline, rules, faqs, isHot
         } = req.body;
 
         // Check if event exists and user is the organizer
@@ -365,6 +366,7 @@ exports.updateEvent = async (req, res) => {
                 registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : event.registrationDeadline,
                 rules: rules !== undefined ? [rules] : event.rules,
                 faqs: faqs !== undefined ? { question: 'General', answer: faqs } : event.faqs,
+                isHot: isHot !== undefined ? (isHot === 'true' || isHot === true) : event.isHot,
                 updatedAt: new Date()
             };
 

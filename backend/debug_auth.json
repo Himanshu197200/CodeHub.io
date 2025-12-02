@@ -1,7 +1,0 @@
-{
-  "timestamp": "2025-11-29T22:31:14.499Z",
-  "clientId": "***t.com",
-  "clientSecret": "PRESENT",
-  "redirectUri": "http://localhost:5001/api/auth/google/callback",
-  "code": "PRESENT"
-}

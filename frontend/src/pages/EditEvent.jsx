@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
-import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle, ArrowLeft, TrendingUp } from 'lucide-react';
 
 const EditEvent = () => {
     const { id } = useParams();
@@ -69,7 +69,8 @@ const EditEvent = () => {
                     price: data.price || '',
                     registrationDeadline: deadlineStr,
                     rules: rulesStr,
-                    faqs: faqsStr
+                    faqs: faqsStr,
+                    isHot: data.isHot || false
                 });
                 setCurrentBanner(data.banner);
             } catch (err) {
@@ -378,6 +379,21 @@ const EditEvent = () => {
                                 </div>
                             </div>
                         )}
+
+                        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                            <input
+                                type="checkbox"
+                                id="isHot"
+                                name="isHot"
+                                checked={formData.isHot}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="isHot" className="text-sm font-bold text-red-600 flex items-center gap-2">
+                                <TrendingUp size={16} />
+                                Mark as Hot Event (Featured on Homepage)
+                            </label>
+                        </div>
                     </div>
 
                     {/* Banner Upload */}

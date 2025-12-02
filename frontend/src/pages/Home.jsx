@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import EventCard from '../components/EventCard';
+import HotEventsCarousel from '../components/HotEventsCarousel';
 import { Search, Sparkles, TrendingUp, Calendar, ArrowRight } from 'lucide-react';
 import { mockEvents } from '../data/mockEvents';
 
@@ -31,7 +32,8 @@ const Home = () => {
     }, []);
 
 
-    const upcomingEvents = events
+    // Base filter for all future events
+    const allUpcoming = events
         .filter(event => {
             const eventDate = new Date(event.date);
             const now = new Date();
@@ -40,8 +42,16 @@ const Home = () => {
                 event.organizer?.name.toLowerCase().includes(searchQuery.toLowerCase());
             return isFuture && matchesSearch;
         })
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .slice(0, 3);
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Hot events (explicitly marked)
+    const hotEvents = allUpcoming.filter(event => event.isHot === true);
+
+    // Carousel events: STRICTLY show only hot events
+    const carouselEvents = hotEvents;
+
+    // Grid events: Show 3 random upcoming events
+    const gridEvents = [...allUpcoming].sort(() => 0.5 - Math.random()).slice(0, 3);
 
     return (
         <div className="min-h-screen bg-gray-50/50">
@@ -72,7 +82,7 @@ const Home = () => {
                     </p>
 
 
-                    <div className="max-w-2xl mx-auto relative group">
+                    <div className="max-w-2xl mx-auto relative group mb-20">
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                         <div className="relative flex items-center bg-white rounded-xl shadow-xl p-2">
                             <Search className="ml-4 text-gray-400 h-6 w-6" />
@@ -88,6 +98,19 @@ const Home = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* Hot Events Carousel */}
+                    {!loading && carouselEvents.length > 0 && (
+                        <div className="max-w-6xl mx-auto mt-12">
+                            <div className="flex items-center gap-2 mb-6 justify-center md:justify-start">
+                                <TrendingUp className="text-red-500" />
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    {hotEvents.length > 0 ? 'Hot Events' : 'Featured Events'}
+                                </h2>
+                            </div>
+                            <HotEventsCarousel events={carouselEvents} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -117,9 +140,9 @@ const Home = () => {
                     </div>
                 ) : (
                     <>
-                        {upcomingEvents.length > 0 ? (
+                        {gridEvents.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                                {upcomingEvents.map((event) => (
+                                {gridEvents.map((event) => (
                                     <EventCard key={event.id} event={event} />
                                 ))}
                             </div>

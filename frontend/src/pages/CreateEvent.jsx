@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle } from 'lucide-react';
+import { Upload, Calendar, Clock, MapPin, DollarSign, Users, Type, AlignLeft, AlertCircle, TrendingUp } from 'lucide-react';
 
 const CreateEvent = () => {
     const navigate = useNavigate();
@@ -18,7 +18,8 @@ const CreateEvent = () => {
         price: '',
         registrationDeadline: '',
         rules: '',
-        faqs: ''
+        faqs: '',
+        isHot: false
     });
     const [banner, setBanner] = useState(null);
     const [error, setError] = useState('');
@@ -318,6 +319,21 @@ const CreateEvent = () => {
                                 </div>
                             </div>
                         )}
+
+                        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                            <input
+                                type="checkbox"
+                                id="isHot"
+                                name="isHot"
+                                checked={formData.isHot}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="isHot" className="text-sm font-bold text-red-600 flex items-center gap-2">
+                                <TrendingUp size={16} />
+                                Mark as Hot Event (Featured on Homepage)
+                            </label>
+                        </div>
                     </div>
 
                     {/* Banner Upload */}

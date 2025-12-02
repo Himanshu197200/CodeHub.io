@@ -65,6 +65,7 @@ model Event {
   registrationDeadline DateTime
   rules           String[]
   faqs            Json?
+  isHot           Boolean  @default(false)
 
   organizerId     String   @db.ObjectId
   organizer       User     @relation("OrganizedEvents", fields: [organizerId], references: [id])
