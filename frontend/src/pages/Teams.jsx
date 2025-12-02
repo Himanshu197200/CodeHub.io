@@ -80,7 +80,7 @@ const Teams = () => {
                         </button>
                         <button
                             onClick={() => setOpenCreate(true)}
-                            className="px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center gap-2"
+                            className="px-4 py-2 bg-primary-600 text-gray-700 font-medium rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center gap-2"
                         >
                             <Plus size={20} />
                             Create Team
@@ -186,7 +186,7 @@ const Teams = () => {
                             </button>
                             <button
                                 onClick={handleCreateTeam}
-                                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                                className="px-4 py-2 bg-primary-600 text-gray-700 rounded-lg hover:bg-primary-700 transition"
                             >
                                 Create
                             </button>
