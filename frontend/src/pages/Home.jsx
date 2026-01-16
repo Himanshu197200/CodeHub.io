@@ -58,7 +58,10 @@ const Home = () => {
 
             <div className="relative bg-white overflow-hidden">
                 <div className="absolute inset-0">
-                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                    <div
+                        className="absolute inset-0 opacity-20"
+                        style={{ backgroundImage: `url(${import.meta.env.VITE_NOISE_SVG_URL})` }}
+                    ></div>
                     <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
                     <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
                     <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>

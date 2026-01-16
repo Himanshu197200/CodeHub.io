@@ -151,7 +151,7 @@ const EventDetails = () => {
                         <div className="w-full md:w-1/3 lg:w-1/4">
                             <div className="aspect-video md:aspect-square rounded-2xl overflow-hidden shadow-lg">
                                 <img
-                                    src={event.thumbnail || event.banner || 'https://via.placeholder.com/400x400'}
+                                    src={event.thumbnail || event.banner || import.meta.env.VITE_PLACEHOLDER_IMAGE_URL}
                                     alt={event.title}
                                     className="w-full h-full object-cover"
                                 />

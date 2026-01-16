@@ -5,7 +5,6 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.post('/logout', authController.logout);
 router.get('/me', protect, authController.getMe);
-router.get('/google', authController.googleLogin);
-router.get('/google/callback', authController.googleCallback);
+router.post('/sync', authController.syncUser);
 
 module.exports = router;

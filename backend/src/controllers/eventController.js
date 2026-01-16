@@ -10,7 +10,7 @@ const uploadToCloudinary = (buffer) => {
             process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name' ||
             process.env.CLOUDINARY_API_KEY === 'your_api_key') {
             console.log('[MOCK CLOUDINARY] Using mock image (credentials missing or placeholders)...');
-            return resolve({ secure_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' });
+            return resolve({ secure_url: process.env.DEFAULT_EVENT_BANNER || '' });
         }
 
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -20,7 +20,7 @@ const uploadToCloudinary = (buffer) => {
                     console.error('[CLOUDINARY ERROR]', error);
                     // Fallback to mock image on error
                     console.log('[MOCK CLOUDINARY] Fallback to mock image due to upload error...');
-                    return resolve({ secure_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' });
+                    return resolve({ secure_url: process.env.DEFAULT_EVENT_BANNER || '' });
                 }
                 resolve(result);
             }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, MapPin, Building, User, Phone, Mail, ArrowRight, Loader, Plus, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { SignInButton } from '@clerk/clerk-react';
 import api from '../services/api';
 
 const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
@@ -487,27 +488,30 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
                                         <p className="text-xs text-gray-500">{user.email}</p>
                                     </div>
                                 </div>
-                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
                             </div>
                         )}
 
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-100"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-gray-500">Or continue with</span>
-                            </div>
-                        </div>
+                        {!user && (
+                            <>
+                                <div className="relative my-6">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-gray-100"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-sm">
+                                        <span className="px-4 bg-white text-gray-500">Or sign in to continue</span>
+                                    </div>
+                                </div>
 
-                        <button
-                            type="button"
-                            onClick={() => window.location.href = `${api.defaults.baseURL}/auth/google`}
-                            className="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
-                        >
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                            Google
-                        </button>
+                                <SignInButton mode="modal">
+                                    <button
+                                        type="button"
+                                        className="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
+                                    >
+                                        Sign In
+                                    </button>
+                                </SignInButton>
+                            </>
+                        )}
 
                     </form>
                 </div>

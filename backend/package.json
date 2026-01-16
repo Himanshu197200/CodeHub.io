@@ -12,7 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@clerk/clerk-js": "^5.119.1",
+    "@clerk/backend": "^2.29.2",
     "@prisma/client": "^5.10.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",

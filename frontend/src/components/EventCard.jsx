@@ -10,11 +10,11 @@ const EventCard = ({ event }) => {
             onClick={() => navigate(`/events/${event.id}`)}
             className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full cursor-pointer transform hover:-translate-y-1"
         >
-            
+
             <div className="relative h-48 overflow-hidden">
                 <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 <img
-                    src={event.banner || event.thumbnail || 'https://via.placeholder.com/400x200'}
+                    src={event.banner || event.thumbnail || import.meta.env.VITE_PLACEHOLDER_IMAGE_URL}
                     alt={event.title}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                     onLoad={(e) => e.target.previousSibling.style.display = 'none'}
@@ -34,7 +34,7 @@ const EventCard = ({ event }) => {
                 </div>
             </div>
 
-            
+
             <div className="p-5 flex flex-col flex-grow relative">
                 <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-primary-600 transition-colors">

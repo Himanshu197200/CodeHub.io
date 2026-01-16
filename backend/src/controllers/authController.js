@@ -1,8 +1,10 @@
 const prisma = require('../utils/prisma');
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
+const { createClerkClient } = require('@clerk/backend');
+
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
 exports.logout = (req, res) => {
+    // Clerk handles logout on frontend, but we can clear any local cookies if they exist
     res.clearCookie('token', {
         httpOnly: true,
         secure: true,
@@ -13,109 +15,59 @@ exports.logout = (req, res) => {
 
 exports.getMe = async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        // req.user is now populated by Clerk middleware
+        const clerkId = req.auth.userId;
+        if (!clerkId) return res.status(401).json({ message: 'Not authenticated' });
+
+        let user = await prisma.user.findUnique({ where: { clerkId: clerkId } });
+
+        // If user doesn't exist in our DB but exists in Clerk, sync them
+        if (!user) {
+            const clerkUser = await clerkClient.users.getUser(clerkId);
+            const email = clerkUser.emailAddresses[0]?.emailAddress;
+            const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || email;
+
+            user = await prisma.user.upsert({
+                where: { email: email },
+                update: { clerkId: clerkId },
+                create: {
+                    clerkId: clerkId,
+                    email: email,
+                    name: name,
+                    role: 'STUDENT' // Default role
+                }
+            });
+        }
+
         res.json(user);
     } catch (error) {
+        console.error('getMe Error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-exports.googleLogin = (req, res) => {
-    const { role } = req.query;
-    const state = role || 'STUDENT';
-
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback';
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-
-    if (!clientId) return res.status(500).json({ message: 'Google Client ID not configured' });
-
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none'
-    });
-
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=profile email&state=${state}&prompt=select_account consent`;
-    // console.log(url)
-    res.redirect(encodeURI(url));
-};
-
-exports.googleCallback = async (req, res) => {
-    const { code, state } = req.query;
-    const role = state || 'STUDENT';
-
-    if (!code) {
-        return res.status(400).json({ message: 'No code provided' });
-    }
-
+exports.syncUser = async (req, res) => {
     try {
-        const redirectUri = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback';
-        const clientId = process.env.GOOGLE_CLIENT_ID;
-        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+        const { clerkId, email, name, role } = req.body;
 
-        const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', new URLSearchParams({
-            code,
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: redirectUri,
-            grant_type: 'authorization_code',
-        }).toString(), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
-
-        const tokenData = tokenResponse.data;
-
-        const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${tokenData.access_token}` },
-        });
-        const userData = userResponse.data;
-
-        let user = await prisma.user.findUnique({ where: { email: userData.email } });
-
-        if (!user) {
-            // Use MongoDB native driver to bypass Prisma transaction requirement
-            const { MongoClient } = require('mongodb');
-            const client = new MongoClient(process.env.DATABASE_URL);
-
-            try {
-                await client.connect();
-                const db = client.db();
-                const usersCollection = db.collection('User');
-
-                const result = await usersCollection.insertOne({
-                    email: userData.email,
-                    name: userData.name,
-                    role: role === 'ORGANIZER' ? 'ORGANIZER' : 'STUDENT',
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                });
-
-                // Fetch the created user with Prisma to get proper format
-                user = await prisma.user.findUnique({ where: { email: userData.email } });
-            } finally {
-                await client.close();
+        const user = await prisma.user.upsert({
+            where: { clerkId: clerkId },
+            update: {
+                email: email,
+                name: name,
+                role: role || 'STUDENT'
+            },
+            create: {
+                clerkId: clerkId,
+                email: email,
+                name: name,
+                role: role || 'STUDENT'
             }
-        }
-
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: '7d',
         });
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const redirectPath = user.role === 'ORGANIZER' || user.role === 'ADMIN' ? '/host-dashboard' : '/';
-
-        res.redirect(`${frontendUrl}${redirectPath}`);
-
+        res.json(user);
     } catch (error) {
-        console.error('Google Auth Error:', error);
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_auth_failed`);
+        console.error('Sync error:', error);
+        res.status(500).json({ message: 'Sync failed' });
     }
 };

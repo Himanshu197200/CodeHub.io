@@ -9,13 +9,16 @@ const prisma = require('./utils/prisma');
 const PORT = process.env.PORT || 5001;
 
 
+const { clerkMiddleware } = require('@clerk/backend');
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'https://ap-frontend-sepia.vercel.app',
+    origin: process.env.CLIENT_URL,
     credentials: true
 }));
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(clerkMiddleware());
 
 
 const authRoutes = require('./routes/authRoutes');
