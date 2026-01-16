@@ -9,7 +9,7 @@ const prisma = require('./utils/prisma');
 const PORT = process.env.PORT || 5001;
 
 
-const { clerkMiddleware } = require('@clerk/backend');
+const { clerkMiddleware } = require('@clerk/express');
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -39,7 +39,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Explicitly handle preflight requests for all routes
+app.options(/.*/, cors(corsOptions)); // Express 5.x requires regex or named params for wildcards
+
 
 app.use(express.json());
 app.use(cookieParser());
