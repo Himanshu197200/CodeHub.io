@@ -37,8 +37,8 @@ exports.googleLogin = (req, res) => {
     });
 
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=profile email&state=${state}&prompt=select_account consent`;
-
-    res.redirect(url);
+    // console.log(url)
+    res.redirect(encodeURI(url));
 };
 
 exports.googleCallback = async (req, res) => {
