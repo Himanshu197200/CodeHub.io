@@ -14,16 +14,25 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    // Axios joins baseURL and url. If the url starts with a slash, it treats it as absolute to the domain.
-    // If our baseURL ends with /api, we usually want calls to be relative to that.
-    if (config.url && config.url.startsWith('/') && config.baseURL && config.baseURL.endsWith('/api')) {
-        config.url = config.url.substring(1);
+    // 1. Normalize baseURL (no trailing slash)
+    if (config.baseURL && config.baseURL.endsWith('/')) {
+        config.baseURL = config.baseURL.slice(0, -1);
     }
-    return config;
-});
 
-// Interceptor to add Clerk token will be managed in AuthContext or App components
-// because it requires access to the Clerk hooks.
+    // 2. Normalize url (must start with exactly one slash)
+    // If it's already an absolute URL, leave it alone
+    if (config.url && !config.url.startsWith('http')) {
+        if (!config.url.startsWith('/')) {
+            config.url = '/' + config.url;
+        }
+        // Remove double slashes if any (except protocol)
+        config.url = config.url.replace(/\/+/g, '/');
+    }
+
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
 
 export const setAuthToken = (token) => {
     if (token) {
