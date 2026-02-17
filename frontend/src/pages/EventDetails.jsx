@@ -102,12 +102,14 @@ const EventDetails = () => {
     }, []);
 
     const handleRegisterClick = () => {
+        setRegistering(true);
         setShowRegistrationForm(true);
     };
 
     const handleRegistrationSubmit = (formData) => {
         setIsRegistered(true);
         setShowRegistrationForm(false);
+        setRegistering(false);
         setSuccess('Successfully registered!');
     };
 
@@ -124,7 +126,8 @@ const EventDetails = () => {
         </div>
     );
 
-    const daysLeft = Math.ceil((new Date(event.registrationDeadline) - new Date()) / (1000 * 60 * 60 * 24));
+    const deadline = event.registrationDeadline ? new Date(event.registrationDeadline) : null;
+    const daysLeft = deadline ? Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24)) : 99;
 
     return (
         <div className="bg-gray-50 min-h-screen pb-20 pt-20">

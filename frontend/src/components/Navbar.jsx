@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, Bell, LogOut, LayoutDashboard, Users, PlusCircle, Calendar, ChevronDown } from 'lucide-react';
+import api from '../services/api';
 
 const Navbar = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,6 +23,26 @@ const Navbar = () => {
     const handleLogout = () => {
         logout();
         navigate('/login');
+    };
+
+    const handleHostEvent = async () => {
+        if (!user) {
+            // Save intent to localStorage so it persists through Clerk redirect
+            localStorage.setItem('postLoginIntent', 'host');
+            navigate('/login');
+            return;
+        }
+
+        if (user.role === 'STUDENT') {
+            try {
+                await api.post('/auth/become-organizer');
+                await refreshUser();
+            } catch (error) {
+                console.error('Failed to upgrade role:', error);
+            }
+        }
+
+        navigate('/host-dashboard');
     };
 
     const isActive = (path) => location.pathname === path;
@@ -147,24 +168,14 @@ const Navbar = () => {
                                                                 Dashboard
                                                             </Link>
                                                         ) : (
-                                                            <>
-                                                                <Link
-                                                                    to="/dashboard"
-                                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                                                    onClick={() => setIsProfileOpen(false)}
-                                                                >
-                                                                    <LayoutDashboard size={16} className="text-gray-400" />
-                                                                    Dashboard
-                                                                </Link>
-                                                                <Link
-                                                                    to="/teams"
-                                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                                                    onClick={() => setIsProfileOpen(false)}
-                                                                >
-                                                                    <Users size={16} className="text-gray-400" />
-                                                                    My Teams
-                                                                </Link>
-                                                            </>
+                                                            <Link
+                                                                to="/teams"
+                                                                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                                                                onClick={() => setIsProfileOpen(false)}
+                                                            >
+                                                                <Users size={16} className="text-gray-400" />
+                                                                My Teams
+                                                            </Link>
                                                         )}
                                                     </div>
                                                     <div className="border-t border-gray-50 p-1">
@@ -183,12 +194,12 @@ const Navbar = () => {
                                 </div>
                             ) : (
                                 <div className="hidden md:flex items-center justify-end flex-1 gap-4">
-                                    <Link
-                                        to="/organizer-login"
+                                    <button
+                                        onClick={handleHostEvent}
                                         className="px-6 py-3 rounded-full text-base font-bold text-teal-600 border-2 border-teal-600 hover:bg-teal-50 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                                     >
                                         Host Event
-                                    </Link>
+                                    </button>
                                     <Link
                                         to="/login"
                                         className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-full text-base font-bold transition-all shadow-lg shadow-teal-600/20 hover:shadow-teal-600/40 transform hover:-translate-y-0.5"
@@ -262,22 +273,13 @@ const Navbar = () => {
                                             Dashboard
                                         </Link>
                                     ) : (
-                                        <>
-                                            <Link
-                                                to="/dashboard"
-                                                className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                Dashboard
-                                            </Link>
-                                            <Link
-                                                to="/teams"
-                                                className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                My Teams
-                                            </Link>
-                                        </>
+                                        <Link
+                                            to="/teams"
+                                            className="block px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-gray-50"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            My Teams
+                                        </Link>
                                     )}
                                     <button
                                         onClick={() => {

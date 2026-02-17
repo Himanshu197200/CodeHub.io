@@ -25,18 +25,18 @@ import EventDetails from './pages/EventDetails';
 import Teams from './pages/Teams';
 import Dashboard from './pages/Dashboard';
 import HostDashboard from './pages/HostDashboard';
-import OrganizerLogin from './pages/OrganizerLogin';
+import PostLoginHandler from './components/PostLoginHandler';
 
 import Layout from './components/Layout';
 
 function AppRoutes() {
   return (
     <Layout>
+      <PostLoginHandler />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/events" element={<Events />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/organizer-login" element={<OrganizerLogin />} />
         <Route path="/events/:id" element={<EventDetails />} />
         <Route path="/teams" element={
           <PrivateRoute>

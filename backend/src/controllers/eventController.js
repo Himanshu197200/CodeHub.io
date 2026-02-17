@@ -157,7 +157,12 @@ exports.getEventById = async (req, res) => {
 exports.registerForEvent = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const userId = req.user.id || (await prisma.user.findUnique({ where: { clerkId: req.user.clerkId } }))?.id;
+
+        if (!userId) {
+            return res.status(404).json({ message: 'User profile not found. Please sync your account.' });
+        }
+
         const { mobile, gender, organization, type, differentlyAbled, location } = req.body;
 
         const event = await prisma.event.findUnique({
@@ -189,7 +194,7 @@ exports.registerForEvent = async (req, res) => {
         }
 
 
-        if (new Date() > new Date(event.registrationDeadline)) {
+        if (event.registrationDeadline && new Date() > new Date(event.registrationDeadline)) {
             return res.status(400).json({ message: 'Registration deadline passed' });
         }
 
@@ -547,5 +552,112 @@ exports.registerTeam = async (req, res) => {
     } catch (error) {
         console.error('Team Registration Error:', error);
         res.status(500).json({ message: error.message || 'Team registration failed' });
+    }
+};
+
+exports.getMyEvents = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const events = await prisma.event.findMany({
+            where: { organizerId: userId },
+            include: {
+                registrations: {
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        user: {
+                            select: {
+                                name: true,
+                                email: true
+                            }
+                        }
+                    }
+                },
+                organizer: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const eventsWithStats = events.map(event => ({
+            ...event,
+            registrationCount: event.registrations.length,
+            spotsLeft: event.maxParticipants - event.registrations.length
+        }));
+
+        res.json(eventsWithStats);
+    } catch (error) {
+        console.error('Get My Events Error:', error);
+        res.status(500).json({ message: 'Failed to fetch your events' });
+    }
+};
+
+exports.updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        const event = await prisma.event.findUnique({ where: { id } });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        if (event.organizerId !== userId && userRole !== 'ADMIN') {
+            return res.status(403).json({
+                message: 'You are not authorized to edit this event'
+            });
+        }
+
+        let bannerUrl = event.banner;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer);
+            bannerUrl = result.secure_url;
+        }
+
+        const {
+            title, description, date, time, venue, type, category,
+            maxParticipants, isPaid, price, registrationDeadline, rules, faqs
+        } = req.body;
+
+        const updatedEvent = await prisma.event.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                banner: bannerUrl,
+                date: date ? new Date(date) : event.date,
+                time,
+                venue,
+                type,
+                category,
+                maxParticipants: maxParticipants ? parseInt(maxParticipants) : event.maxParticipants,
+                isPaid: isPaid !== undefined ? isPaid === 'true' : event.isPaid,
+                registrationFee: price ? parseFloat(price) : event.registrationFee,
+                registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : event.registrationDeadline,
+                rules: rules ? (typeof rules === 'string' ? JSON.parse(rules) : rules) : event.rules,
+                faqs: faqs ? (typeof faqs === 'string' ? JSON.parse(faqs) : faqs) : event.faqs
+            },
+            include: {
+                registrations: true,
+                organizer: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
+                }
+            }
+        });
+
+        res.json({ message: 'Event updated successfully', event: updatedEvent });
+    } catch (error) {
+        console.error('Update Event Error:', error);
+        res.status(500).json({ message: 'Failed to update event' });
     }
 };

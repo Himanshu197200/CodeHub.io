@@ -1,16 +1,24 @@
-# EventX - College Event Management System
+# NST Events - College Event Management System
 
-## Tech Stack
-- **Frontend**: React (Vite), Material UI, Tailwind CSS
+## 🚀 Tech Stack
+- **Frontend**: React (Vite), Tailwind CSS, Framer Motion
 - **Backend**: Node.js, Express, Prisma (MongoDB)
-- **Auth**: JWT + Email OTP
+- **Authentication**: [Clerk](https://clerk.com/) (Managed Auth)
+- **Database**: MongoDB (Atlas)
+- **File Storage**: Cloudinary
 
-## Setup Instructions
+## 🏗️ Architecture
+The project is split into two main directories:
+- **`backend/`**: Express server with Prisma ORM and Clerk integration. [See detailed backend architecture](./backend/README.md)
+- **`frontend/`**: React application with Tailwind CSS.
+
+## 🛠️ Setup Instructions
 
 ### Prerequisites
 - Node.js installed
-- MongoDB Database URL (Cloud or Local)
-- Cloudinary Account (Optional, for image uploads)
+- MongoDB Database URL
+- Clerk Publishable & Secret Keys
+- Cloudinary Credentials (Optional)
 
 ### Backend Setup
 1. Navigate to `backend` folder:
@@ -22,19 +30,14 @@
    npm install
    ```
 3. Configure `.env`:
-   - Rename `.env.example` to `.env` (or create one).
-   - Update `DATABASE_URL` with your MongoDB connection string.
-   - Update `EMAIL_USER` and `EMAIL_PASS` for OTP emails.
-   - Update `CLOUDINARY_*` vars for image uploads.
+   - Rename `.env.example` to `.env`.
+   - Update `DATABASE_URL` with your MongoDB string.
+   - Add `CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
 4. Generate Prisma Client:
    ```bash
    npx prisma generate
    ```
-5. Run Seed (Optional):
-   ```bash
-   npx prisma db seed
-   ```
-6. Start Server:
+5. Start Server:
    ```bash
    npm run dev
    ```
@@ -48,20 +51,22 @@
    ```bash
    npm install
    ```
-3. Start Dev Server:
+3. Configure `.env`:
+   - Add `VITE_CLERK_PUBLISHABLE_KEY`.
+4. Start Dev Server:
    ```bash
    npm run dev
    ```
 
-## Features Implemented
-- **Authentication**: Login with Email OTP. Auto-creates user if not exists.
-- **Role Management**: Student, Organizer, Admin.
-- **Event Management**: Create events (Organizer), View events (All), Register (Student).
-- **Team Management**: Create teams, Join teams via code.
-- **Analytics**: Dashboard with charts for Organizers (Registrations, Feedback) and Students (Attendance).
-- **Clash Detection**: Warns if venue/time conflicts.
-- **Responsive UI**: Built with MUI and Tailwind.
+## ✨ Features Implemented
+- **Universal Auth**: Seamless login via Clerk (Google, Email, etc.).
+- **Role-Based Access**: Student, Organizer, Faculty, and Admin levels.
+- **Event Lifecycle**: Create, Edit, Delete, and Register for events.
+- **Team Registrations**: Support for team-based competitions with join codes.
+- **Real-time Analytics**: Dashboard for organizers to track engagement.
+- **Automated Sync**: Clerk identities are automatically synced to MongoDB profiles.
+- **Responsive Design**: Fully optimized for mobile and desktop.
 
-## Notes
-- The email service mocks sending emails by logging to the console if `EMAIL_USER` is `test@example.com`. Check the backend terminal for OTPs.
-- Image upload mocks Cloudinary if credentials are missing.
+## 📜 Documentation
+- [Detailed Backend Architecture](./backend/README.md)
+- [Frontend Component Guide](./frontend/README.md) (To be added)

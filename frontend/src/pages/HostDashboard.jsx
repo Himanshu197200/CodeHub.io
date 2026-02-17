@@ -29,11 +29,11 @@ const HostDashboard = () => {
     const fetchHostData = async () => {
         try {
             setLoading(true);
-            const eventsRes = await api.get('/events');
-            const hostEvents = eventsRes.data.filter(event => event.organizerId === user.id);
+            const eventsRes = await api.get('/events/my-events');
+            const hostEvents = eventsRes.data;
             setMyEvents(hostEvents);
 
-            const totalRegistrations = hostEvents.reduce((sum, event) => sum + (event._count?.registrations || 0), 0);
+            const totalRegistrations = hostEvents.reduce((sum, event) => sum + (event.registrationCount || 0), 0);
             const avgRating = hostEvents.length > 0
                 ? (hostEvents.reduce((sum, event) => sum + (event.avgRating || 0), 0) / hostEvents.length).toFixed(1)
                 : '0.0';
@@ -236,8 +236,8 @@ const HostDashboard = () => {
                                                 </div>
                                             </div>
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPast
-                                                    ? 'bg-gray-100 text-gray-600'
-                                                    : 'bg-green-100 text-green-700'
+                                                ? 'bg-gray-100 text-gray-600'
+                                                : 'bg-green-100 text-green-700'
                                                 }`}>
                                                 {isPast ? 'Past' : 'Upcoming'}
                                             </span>
@@ -251,7 +251,7 @@ const HostDashboard = () => {
                                             <div>
                                                 <p className="text-xs text-gray-500">Registrations</p>
                                                 <p className="text-lg font-bold text-gray-900">
-                                                    {event._count?.registrations || 0}
+                                                    {event.registrationCount || 0}
                                                 </p>
                                             </div>
                                             <div>

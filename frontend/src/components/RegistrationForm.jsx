@@ -17,7 +17,8 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
         type: 'College Student',
         differentlyAbled: 'No',
         location: '',
-        ...initialData
+        ...initialData,
+        terms: false
     });
 
     // Team Registration State
@@ -71,6 +72,7 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
         if (!formData.gender) newErrors.gender = 'Gender is required';
         if (!formData.organization) newErrors.organization = 'Organization is required';
         if (!formData.location) newErrors.location = 'Location is required';
+        if (!formData.terms) newErrors.terms = 'Please accept the Terms & Conditions';
 
         if (isTeamRegistration) {
             if (!teamName.trim()) newErrors.teamName = 'Team name is required';
@@ -87,7 +89,7 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
     const handleNext = async (e) => {
         e.preventDefault();
         if (!validate()) return;
-        handleSubmitRegistration();
+        await handleSubmitRegistration();
     };
 
     const handleSubmitRegistration = async () => {
@@ -144,8 +146,9 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
                             <span className="text-white font-bold">N</span>
                         </div>
                         <p className="text-teal-500 font-bold text-xs tracking-widest uppercase mb-1">NST EVENTS</p>
-                        <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-                        <p className="text-sm text-gray-500">Enter your college email to continue</p>
+                        <p className="text-teal-500 font-bold text-xs tracking-widest uppercase mb-1">NST EVENTS</p>
+                        <h2 className="text-2xl font-bold text-gray-900">Event Registration</h2>
+                        <p className="text-sm text-gray-500">Fill in your details to secure your spot</p>
                     </div>
                     <button onClick={onClose} className="absolute right-6 top-6 p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <X size={24} className="text-gray-500" />
@@ -187,6 +190,7 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
+                                        required
                                         className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all bg-gray-50 focus:bg-white"
                                         placeholder="student@college.edu"
                                     />
@@ -457,12 +461,20 @@ const RegistrationForm = ({ event, onClose, onSubmit, initialData = {} }) => {
 
                         <div className="pt-4 border-t border-gray-100 flex items-center gap-4">
                             <div className="flex-1 flex items-start gap-2">
-                                <input type="checkbox" id="terms" className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500" required />
-                                <label htmlFor="terms" className="text-xs text-gray-500">
-                                    By registering, you agree to share your data with the organizers and accept the <a href="#" className="text-primary-600 hover:underline">Terms & Conditions</a>.
+                                <input
+                                    type="checkbox"
+                                    id="terms"
+                                    name="terms"
+                                    checked={formData.terms}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.checked }))}
+                                    className={`mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 ${errors.terms ? 'border-red-500' : ''}`}
+                                />
+                                <label htmlFor="terms" className={`text-xs ${errors.terms ? 'text-red-500 font-bold' : 'text-gray-500'}`}>
+                                    By registering, you agree to share your data with the organizers and accept the <a href="#" className="text-primary-600 hover:underline font-bold">Terms & Conditions</a>.
                                 </label>
                             </div>
                         </div>
+                        {errors.terms && <p className="text-red-500 text-[10px] mt-1 ml-6">{errors.terms}</p>}
 
                         <button
                             type="submit"
